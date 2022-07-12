@@ -25,10 +25,16 @@ module.exports.getAllCards = (req, res, next) => {
 
 module.exports.deletCardById = (req, res, next) => {
   Card.findByIdAndRemove(req.params.cardId)
-    .then((card) => res.send(card))
+    .then((card) => {
+      if (!card) {
+        next(new ErrorNotFound('Карточка с указанным _id не найдена.'));
+      } else {
+        res.send(card);
+      }
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new ErrorNotFound('Карточка с указанным _id не найдена.'));
+        next(new ErrorBadRequest('Карточка с указанным _id не найдена.'));
       } else {
         next(err);
       }
@@ -41,7 +47,13 @@ module.exports.likeCard = (req, res, next) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => res.send(card))
+    .then((card) => {
+      if (!card) {
+        next(new ErrorNotFound('Карточка с указанным _id не найдена.'));
+      } else {
+        res.send(card);
+      }
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new ErrorBadRequest('Переданы некорректные данные для постановки/снятии лайка.'));
@@ -59,7 +71,13 @@ module.exports.dislikeCard = (req, res, next) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => res.send(card))
+    .then((card) => {
+      if (!card) {
+        next(new ErrorNotFound('Карточка с указанным _id не найдена.'));
+      } else {
+        res.send(card);
+      }
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new ErrorBadRequest('Переданы некорректные данные для постановки/снятии лайка.'));

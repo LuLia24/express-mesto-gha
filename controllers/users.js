@@ -24,10 +24,16 @@ module.exports.getAllUsers = (req, res, next) => {
 
 module.exports.getUserById = (req, res, next) => {
   User.findById(req.params.userId)
-    .then((user) => res.send(user))
+    .then((user) => {
+      if (!user) {
+        next(new ErrorNotFound('Пользователь с указанным _id не найден'));
+      } else {
+        res.send(user);
+      }
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new ErrorNotFound('Пользователь по указанному _id не найден.'));
+        next(new ErrorBadRequest('Пользователь по указанному _id не найден.'));
       } else {
         next(err);
       }

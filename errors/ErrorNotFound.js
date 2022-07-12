@@ -7,11 +7,3 @@ class errorNotFound extends Error {
 }
 
 module.exports = errorNotFound;
-
-// new errorNotFound('error 404')
-
-// const obj = {
-//   message: 'error 404',
-//   name: 'errorNotFound',
-//   statusCode: 404,
-// };
