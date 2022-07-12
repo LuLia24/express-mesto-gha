@@ -46,7 +46,7 @@ module.exports.setAvatar = (req, res, next) => {
   User.findByIdAndUpdate(req.user._id, { avatar }, {
     new: true,
     runValidators: true,
-    upsert: true,
+    upsert: false,
   })
     .then((user) => res.send(user))
     .catch((err) => {
@@ -66,7 +66,7 @@ module.exports.setMe = (req, res, next) => {
   User.findByIdAndUpdate(req.user._id, { name, about }, {
     new: true,
     runValidators: true,
-    upsert: true,
+    upsert: false,
   })
     .then((user) => res.send(user))
     .catch((err) => {
