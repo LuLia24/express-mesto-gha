@@ -24,8 +24,8 @@ app.use((req, res, next) => {
 
 app.use('/users', routeUser);
 app.use('/cards', routeCard);
-app.use('/', (next) => {
-  next(new ErrorNotFound('Путь не найден'));
+app.use('/', () => {
+  throw new ErrorNotFound('Путь не найден');
 });
 
 app.use(errorHandler);
