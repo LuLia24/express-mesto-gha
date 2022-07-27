@@ -71,7 +71,7 @@ module.exports.getAllUsers = (req, res, next) => {
 module.exports.getUserById = (req, res, next) => {
   User.findById(req.user || req.params.userId)
     .then((user) => {
-      if (!user || !(req.user._id === req.params.userId)) {
+      if (!user || (req.params.userId && !(req.user._id === req.params.userId))) {
         next(new ErrorNotFound('Пользователь с указанным _id не найден'));
       } else {
         res.send(user);
