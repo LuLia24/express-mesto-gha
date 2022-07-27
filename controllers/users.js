@@ -14,7 +14,9 @@ module.exports.createUser = (req, res, next) => {
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
     }))
-    .then((user) => res.send(user))
+    .then((user) => res.send({
+      name: user.name, about: user.about, avatar: user.avatar, email: user.email,
+    }))
     .catch((err) => {
       if (err.code === 11000) {
         next(new Conflict('Такой пользователь уже зарегистрирован.'));
@@ -33,7 +35,7 @@ module.exports.login = (req, res, next) => {
     .select('+password')
     .then((user) => {
       if (!user) {
-        next(new ErrorBadRequest('Неправильные почта или пароль.'));
+        next(new Unauthorized('Неправильные почта или пароль.'));
       }
 
       return Promise.all([
@@ -69,7 +71,7 @@ module.exports.getAllUsers = (req, res, next) => {
 module.exports.getUserById = (req, res, next) => {
   User.findById(req.user || req.params.userId)
     .then((user) => {
-      if (!user) {
+      if (!user || !(req.user._id === req.params.userId)) {
         next(new ErrorNotFound('Пользователь с указанным _id не найден'));
       } else {
         res.send(user);
