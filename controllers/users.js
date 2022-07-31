@@ -10,20 +10,26 @@ module.exports.createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
-  bcrypt.hash(password, 10)
-    .then((hash) => User.create({
-      name, about, avatar, email, password: hash,
-    }))
-    .then((user) => res.send({
-      name: user.name, about: user.about, avatar: user.avatar, email: user.email,
-    }))
-    .catch((err) => {
-      if (err.code === 11000) {
+
+  User.findOne({ email })
+    .then((isEmailExist) => {
+      if (isEmailExist) {
         next(new Conflict('Такой пользователь уже зарегистрирован.'));
-      } else if (err.name === 'ValidationError') {
-        next(new ErrorBadRequest('Переданы некорректные данные при создании пользователя.'));
       } else {
-        next(err);
+        bcrypt.hash(password, 10)
+          .then((hash) => User.create({
+            name, about, avatar, email, password: hash,
+          }))
+          .then((user) => res.send({
+            name: user.name, about: user.about, avatar: user.avatar, email: user.email,
+          }))
+          .catch((err) => {
+            if (err.name === 'ValidationError') {
+              next(new ErrorBadRequest('Переданы некорректные данные при создании пользователя.'));
+            } else {
+              next(err);
+            }
+          });
       }
     });
 };
@@ -35,7 +41,7 @@ module.exports.login = (req, res, next) => {
     .select('+password')
     .then((user) => {
       if (!user) {
-        next(new Unauthorized('Неправильные почта или пароль.'));
+        return next(new Unauthorized('Неправильные почта или пароль.'));
       }
 
       return Promise.all([
@@ -46,7 +52,7 @@ module.exports.login = (req, res, next) => {
     .then(([user, matched]) => {
       if (!matched) {
         // хеши не совпали — отклоняем промис
-        next(new Unauthorized('Неправильные почта или пароль.'));
+        return next(new Unauthorized('Неправильные почта или пароль.'));
       }
       // аутентификация успешна
       const token = generateJWT(user._id);
@@ -69,7 +75,7 @@ module.exports.getAllUsers = (req, res, next) => {
 };
 
 module.exports.getUserById = (req, res, next) => {
-  User.findById(req.user || req.params.userId)
+  User.findById(req.params.userId || req.user)
     .then((user) => {
       if (!user || (req.params.userId && !(req.user._id === req.params.userId))) {
         next(new ErrorNotFound('Пользователь с указанным _id не найден'));
@@ -92,7 +98,7 @@ module.exports.setAvatar = (req, res, next) => {
   User.findByIdAndUpdate(req.user._id, { avatar }, {
     new: true,
     runValidators: true,
-    upsert: false,
+
   })
     .then((user) => res.send(user))
     .catch((err) => {
@@ -112,7 +118,7 @@ module.exports.setMe = (req, res, next) => {
   User.findByIdAndUpdate(req.user._id, { name, about }, {
     new: true,
     runValidators: true,
-    upsert: false,
+
   })
     .then((user) => res.send(user))
     .catch((err) => {

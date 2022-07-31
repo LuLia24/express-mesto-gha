@@ -28,7 +28,7 @@ module.exports.deletCardById = (req, res, next) => {
   Card.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
-        next(new ErrorNotFound('Передан несуществующий _id карточки'));
+        return next(new ErrorNotFound('Передан несуществующий _id карточки'));
       }
 
       if (card.owner.toString() === req.user._id) {
