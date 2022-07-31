@@ -77,7 +77,10 @@ module.exports.getAllUsers = (req, res, next) => {
 module.exports.getUserById = (req, res, next) => {
   User.findById(req.params.userId || req.user)
     .then((user) => {
-      if (!user || (req.params.userId && !(req.user._id === req.params.userId))) {
+      // если убрать проверку || (req.params.userId && !(req.user._id === req.params.userId)) то
+      // любой авторизированный пользователь сможет получать данные о любом другом пользователе
+      // по id
+      if (!user) {
         next(new ErrorNotFound('Пользователь с указанным _id не найден'));
       } else {
         res.send(user);
