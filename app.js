@@ -8,6 +8,7 @@ const errorHandler = require('./errors/errorHandler');
 const ErrorNotFound = require('./errors/ErrorNotFound');
 const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const { PORT = 3000 } = process.env;
 
@@ -17,6 +18,8 @@ const app = express();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(requestLogger);
 
 app.post(
   '/signin',
@@ -47,6 +50,8 @@ app.use('/cards', routeCard);
 app.use('/', () => {
   throw new ErrorNotFound('Путь не найден');
 });
+
+app.use(errorLogger);
 
 app.use(errors());
 app.use(errorHandler);
